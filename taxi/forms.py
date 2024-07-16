@@ -66,7 +66,7 @@ class CarSearchForm(forms.Form):
 
 
 class ManufacturerSearchForm(forms.Form):
-    model = forms.CharField(
+    name = forms.CharField(
         max_length=64,
         required=False,
         label="",
