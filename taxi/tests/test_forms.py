@@ -1,5 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+
 from taxi.models import Car, Manufacturer
 from taxi.forms import (
     CarForm,
@@ -10,7 +12,6 @@ from taxi.forms import (
     ManufacturerSearchForm,
     validate_license_number
 )
-from django.core.exceptions import ValidationError
 
 
 class CarFormTest(TestCase):
@@ -22,13 +23,6 @@ class CarFormTest(TestCase):
             last_name="Doe",
             license_number="ABC12345"
         )
-        self.driver2 = get_user_model().objects.create_user(
-            username="driver2",
-            password="testpass456",
-            first_name="Jane",
-            last_name="Smith",
-            license_number="XYZ67890"
-        )
         self.manufacturer = Manufacturer.objects.create(
             name="Toyota",
             country="Japan"
@@ -37,23 +31,23 @@ class CarFormTest(TestCase):
             model="Corolla",
             manufacturer=self.manufacturer
         )
+        self.form_data = {
+            "model": "Camry",
+            "manufacturer": self.manufacturer.pk,
+            "drivers": [self.driver1.pk]
+        }
 
     def test_car_form_valid(self):
         form_data = {
             "model": "Camry",
             "manufacturer": self.manufacturer.pk,
-            "drivers": [self.driver1.pk, self.driver2.pk]
+            "drivers": [self.driver1.pk]
         }
         form = CarForm(data=form_data)
         self.assertTrue(form.is_valid())
 
     def test_car_form_invalid(self):
-        form_data = {
-            "model": "",
-            "manufacturer": "",
-            "drivers": []
-        }
-        form = CarForm(data=form_data)
+        form = CarForm(data={})
         self.assertFalse(form.is_valid())
 
 
@@ -71,15 +65,7 @@ class DriverCreationFormTest(TestCase):
         self.assertTrue(form.is_valid())
 
     def test_driver_creation_form_invalid_license(self):
-        form_data = {
-            "username": "newdriver",
-            "password1": "testpass123",
-            "password2": "testpass123",
-            "license_number": "ABC12",
-            "first_name": "New",
-            "last_name": "Driver"
-        }
-        form = DriverCreationForm(data=form_data)
+        form = DriverCreationForm(data={})
         self.assertFalse(form.is_valid())
 
 
